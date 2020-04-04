@@ -12,7 +12,7 @@ import getConfig from "next/config";
 import logger from "../logger";
 import { omitTypenameLink } from "./omitVariableTypenameLink";
 
-const SIGN_IN_PATH = "/signin";
+const REFRESH_PATH = "/refresh";
 const STATUS_FOUND = 302;
 const STATUS_BAD_REQUEST = 400;
 const STATUS_UNAUTHORIZED = 401;
@@ -56,18 +56,17 @@ const create = (initialState, options) => {
     if (networkError) {
       const errorCode = networkError.response && networkError.response.status;
       if (errorCode === STATUS_UNAUTHORIZED) {
-        // If a 401 Unauthorized error occurred, redirect to /signin.
+        // If a 401 Unauthorized error occurred, redirect to /refresh.
         // This will re-authenticate the user without showing a login page and a new token is issued.
         logger.info("Attempting silent re-auth");
         if (process && process.browser) {
-          Router.pushRoute(SIGN_IN_PATH);
+          Router.pushRoute(REFRESH_PATH);
         } else {
-          // In server, if a 401 Unauthorized error occurred, redirect to /signin.
+          // In server, if a 401 Unauthorized error occurred, redirect to /refresh.
           // This will re-authenticate without showing a login page and a new token is issued.
-          // Log out cookies so that the app will load unauthenticated if the re-auth doesn't work
-          if (options.req) options.req.logout();
+          // If not successful, /redirect will take care of logging you out.
           if (options.res) {
-            options.res.writeHead(STATUS_FOUND, { Location: SIGN_IN_PATH });
+            options.res.writeHead(STATUS_FOUND, { Location: REFRESH_PATH });
             options.res.end();
           }
         }
