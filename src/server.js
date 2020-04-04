@@ -1,5 +1,4 @@
-const cookieParser = require("cookie-parser");
-const cookieSession = require("cookie-session");
+const sessions = require("client-sessions");
 const express = require("express");
 const compression = require("compression");
 const nextApp = require("next");
@@ -32,16 +31,16 @@ app
 
     server.use(compression());
 
-    // We use a client-side cookie session instead of a server session so that there are no
+    // We use a client-side encrypted cookie session instead of a server session so that there are no
     // issues when load balancing without sticky sessions.
-    // https://www.npmjs.com/package/cookie-session
-    server.use(cookieSession({
-      // https://www.npmjs.com/package/cookie-session#options
-      keys: [config.SESSION_SECRET],
-      maxAge: config.SESSION_MAX_AGE_MS,
-      name: "storefront-session"
+    // The cookie is encrypted using the SESSION_SECRET to prevent exposing the refresh token.
+    // https://www.npmjs.com/package/client-sessions
+    server.use(sessions({
+      // https://www.npmjs.com/package/client-sessions#usage
+      cookieName: "session", // This name is required so passport picks it up correctly
+      secret: config.SESSION_SECRET,
+      duration: config.SESSION_MAX_AGE_MS
     }));
-    server.use(cookieParser());
 
     configureAuthForServer(server);
 
