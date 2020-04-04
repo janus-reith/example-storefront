@@ -45,7 +45,7 @@ passport.use(
       scope: ["offline", "openid"]
     },
     (accessToken, refreshToken, params, profile, cb) => {
-      cb(null, { accessToken, idToken: params.id_token });
+      cb(null, { accessToken, refreshToken, idToken: params.id_token });
     }
   )
 );
@@ -129,6 +129,42 @@ function configureAuthForServer(server) {
 
   server.get("/post-logout-callback", (req, res) => {
     // After success, redirect to the page we came from originally
+    res.redirect(req.session.redirectTo || "/");
+  });
+
+  server.get("/refresh", async (req, res) => {
+    if (req.session && req.session.passport && req.session.passport.user) {
+      try {
+        const user = JSON.parse(req.session.passport.user);
+        const { refreshToken } = user;
+
+        if (refreshToken) {
+          const response = await fetch(config.OAUTH2_TOKEN_URL, {
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            method: "POST",
+            body: `grant_type=refresh_token&refresh_token=${refreshToken}&response_type=token&client_id=${config.OAUTH2_CLIENT_ID}&client_secret=${config.OAUTH2_CLIENT_SECRET}`
+          });
+
+          const responseData = await response.json();
+
+          if (responseData) {
+            const { access_token, id_token, refresh_token } = responseData;
+
+            req.session.passport.user = JSON.stringify({
+              accessToken: access_token,
+              idToken: id_token,
+              refreshToken: refresh_token
+            });
+
+            return res.redirect(req.session.redirectTo || "/");
+          }
+        }
+      } catch (error) {
+        logger.error("error-token-refresh", error);
+      }
+    }
+
+    req.logout();
     res.redirect(req.session.redirectTo || "/");
   });
 }
