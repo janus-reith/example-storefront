@@ -1,7 +1,16 @@
 const path = require("path");
 const appConfig = require("./config");
 
-module.exports = {
+const withTM = require("next-transpile-modules")([
+  "@reactioncommerce/api-utils",
+  "@reactioncommerce/api-core",
+  "@reactioncommerce/api-plugin-shops",
+  "@reactioncommerce/api-plugin-simple-schema",
+  "@reactioncommerce/api-plugin-accounts",
+  "@reactioncommerce/db-version-check",
+]);
+
+module.exports = withTM({
   env: {
     CANONICAL_URL: appConfig.CANONICAL_URL,
     INTERNAL_GRAPHQL_URL: appConfig.INTERNAL_GRAPHQL_URL,
@@ -9,19 +18,19 @@ module.exports = {
     SEGMENT_ANALYTICS_SKIP_MINIMIZE: appConfig.SEGMENT_ANALYTICS_SKIP_MINIMIZE,
     SEGMENT_ANALYTICS_WRITE_KEY: appConfig.SEGMENT_ANALYTICS_WRITE_KEY,
     STRIPE_PUBLIC_API_KEY: appConfig.STRIPE_PUBLIC_API_KEY,
-    ENABLE_SPA_ROUTING: appConfig.ENABLE_SPA_ROUTING
+    ENABLE_SPA_ROUTING: appConfig.ENABLE_SPA_ROUTING,
   },
   webpack: (webpackConfig) => {
     webpackConfig.module.rules.push({
       test: /\.(gql|graphql)$/,
       loader: "graphql-tag/loader",
       exclude: ["/node_modules/", "/.next/"],
-      enforce: "pre"
+      enforce: "pre",
     });
 
     webpackConfig.module.rules.push({
       test: /\.mjs$/,
-      type: "javascript/auto"
+      type: "javascript/auto",
     });
 
     // Duplicate versions of the styled-components package were being loaded, this config removes the duplication.
@@ -46,6 +55,13 @@ module.exports = {
     webpackConfig.resolve.alias.staticUtils = path.join(__dirname, "staticUtils");
     webpackConfig.resolve.alias.apiUtils = path.join(__dirname, "apiUtils");
 
+    webpackConfig.resolve.alias["@reactioncommerce/api-utils"] = "@reactioncommerce/api-utils/lib";
+
+    webpackConfig.resolve.alias["@reactioncommerce/api-utils/lib/importAsString.js"] = path.join(
+      __dirname,
+      "importAsString.js"
+    );
+
     return webpackConfig;
   },
   experimental: {
@@ -54,71 +70,76 @@ module.exports = {
         {
           source: "/graphiql",
           destination: appConfig.EXTERNAL_GRAPHQL_URL,
-          permanent: true
+          permanent: true,
         },
         {
           source: "/graphql-beta",
           destination: appConfig.EXTERNAL_GRAPHQL_URL,
-          permanent: true
+          permanent: true,
         },
         {
           source: "/graphql-alpha",
           destination: appConfig.EXTERNAL_GRAPHQL_URL,
-          permanent: true
+          permanent: true,
         },
+        /*
         {
           source: "/graphql",
           destination: appConfig.EXTERNAL_GRAPHQL_URL,
           permanent: true
         }
+        */
       ];
     },
     rewrites() {
       return [
+        {
+          source: "/graphql",
+          destination: "/api/reaction/graphql",
+        },
         // Sitemap
         {
           source: "/sitemap:subPage?.xml",
-          destination: "/api/sitemap"
+          destination: "/api/sitemap",
         },
         // Accounts
         {
           source: "/change-password",
-          destination: "/api/account/changePassword"
+          destination: "/api/account/changePassword",
         },
         {
           source: "/post-logout-callback",
-          destination: "/api/account/postLogoutCallback"
+          destination: "/api/account/postLogoutCallback",
         },
         {
           source: "/token",
-          destination: "/api/account/token"
+          destination: "/api/account/token",
         },
         {
           source: "/signin",
-          destination: "/api/account/signin"
+          destination: "/api/account/signin",
         },
         {
           source: "/signup",
-          destination: "/api/account/signup"
+          destination: "/api/account/signup",
         },
         {
           source: "/callback",
-          destination: "/api/account/callback"
+          destination: "/api/account/callback",
         },
         {
           source: "/logout",
-          destination: "/api/account/logout"
+          destination: "/api/account/logout",
         },
         {
           source: "/refresh",
-          destination: "/api/account/refresh"
+          destination: "/api/account/refresh",
         },
         {
           source: "/",
-          destination: "/api/detectLanguage"
-        }
+          destination: "/api/detectLanguage",
+        },
       ];
-    }
-  }
-
-};
+    },
+  },
+});

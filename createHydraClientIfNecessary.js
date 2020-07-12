@@ -11,16 +11,13 @@ const oauthPostLogoutRedirectUrl = `${baseUrl}post-logout-callback`;
 const storefrontHydraClient = {
   client_id: config.OAUTH2_CLIENT_ID,
   client_secret: config.OAUTH2_CLIENT_SECRET,
-  grant_types: [
-    "authorization_code",
-    "refresh_token"
-  ],
+  grant_types: ["authorization_code", "refresh_token"],
   post_logout_redirect_uris: [oauthPostLogoutRedirectUrl],
   redirect_uris: [oauthRedirectUrl],
   response_types: ["code", "id_token", "token"],
   scope: "offline openid",
   subject_type: "public",
-  token_endpoint_auth_method: "client_secret_post"
+  token_endpoint_auth_method: "client_secret_post",
 };
 /* eslint-enable camelcase */
 
@@ -35,7 +32,7 @@ async function createHydraClientIfNecessary() {
 
   const getClientResponse = await fetch(`${adminUrl}clients/${config.OAUTH2_CLIENT_ID}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json" }
+    headers: { "Content-Type": "application/json" },
   });
 
   if (![200, 404].includes(getClientResponse.status)) {
@@ -52,7 +49,7 @@ async function createHydraClientIfNecessary() {
     const updateClientResponse = await fetch(`${adminUrl}clients/${config.OAUTH2_CLIENT_ID}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(storefrontHydraClient)
+      body: JSON.stringify(storefrontHydraClient),
     });
 
     if (updateClientResponse.status === 200) {
@@ -70,13 +67,13 @@ async function createHydraClientIfNecessary() {
     const response = await fetch(`${adminUrl}clients`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(storefrontHydraClient)
+      body: JSON.stringify(storefrontHydraClient),
     });
 
     switch (response.status) {
       case 200:
-        // intentional fallthrough!
-        // eslint-disable-line no-fallthrough
+      // intentional fallthrough!
+      // eslint-disable-line no-fallthrough
       case 201:
         // eslint-disable-next-line no-console
         console.info("OK: Hydra client created");
