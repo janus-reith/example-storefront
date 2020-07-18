@@ -15,8 +15,6 @@ const coreGraphQLSchema = importAsString("@reactioncommerce/api-core/src/graphql
 
 import envConfig from "./config";
 
-import plugins from "./plugins";
-
 export const config = {
   api: {
     bodyParser: false
@@ -52,7 +50,6 @@ const expressMiddleware = [];
 
 function startServer(req, res) {
   if (!handler) {
-    console.log("calling createApolloServer");
     const { apolloServer: apolloServerCallback } = createApolloServer({
       context,
       debug: debugLevels.includes(REACTION_LOG_LEVEL),
@@ -64,7 +61,7 @@ function startServer(req, res) {
     apolloServer = apolloServerCallback;
 
     handler = apolloServer.createHandler({
-      path: "/api/reaction/reaction"
+      path: "/api/reaction/reaction_base"
     });
   }
 
@@ -351,7 +348,7 @@ export default async function start(req, res) {
   // const { mongoUrl = MONGO_URL, shouldInitReplicaSet = REACTION_SHOULD_INIT_REPLICA_SET, silent = false } = options;
 
   if (!Object.entries(registeredPlugins).length) {
-    await registerPlugins(plugins);
+    // await registerPlugins(plugins);
   }
 
   if (!mongoClient) {

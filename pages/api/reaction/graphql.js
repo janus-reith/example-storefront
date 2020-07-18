@@ -11,6 +11,18 @@ export default async function start(req, res) {
   if (!handler) {
     gateway = new ApolloGateway({
       serviceList: [
+        /*
+        {
+          name: `reaction_base`,
+          url: `${host}/api/reaction/reaction_base`,
+        },
+        */
+        /*
+        {
+          name: `reaction_products`,
+          url: `${host}/api/reaction/reaction_products`,
+        },
+        */
         {
           name: `reaction`,
           url: `${host}/api/reaction/reaction`,

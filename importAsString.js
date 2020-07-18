@@ -1,7 +1,6 @@
 import fs from "fs";
 import { createRequire as createRequireFromPath } from "module";
 import stack from "callsite";
-import path from "path";
 
 /**
  * @summary import the contents of another file as a string

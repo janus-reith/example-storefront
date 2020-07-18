@@ -8,6 +8,11 @@ const withTM = require("next-transpile-modules")([
   "@reactioncommerce/api-plugin-simple-schema",
   "@reactioncommerce/api-plugin-accounts",
   "@reactioncommerce/db-version-check",
+  "@reactioncommerce/api-plugin-products",
+  "@reactioncommerce/api-plugin-catalogs",
+  "@reactioncommerce/api-plugin-carts",
+  "@reactioncommerce/api-plugin-shipments",
+  "@reactioncommerce/api-plugin-tags"
 ]);
 
 module.exports = withTM({
@@ -18,19 +23,19 @@ module.exports = withTM({
     SEGMENT_ANALYTICS_SKIP_MINIMIZE: appConfig.SEGMENT_ANALYTICS_SKIP_MINIMIZE,
     SEGMENT_ANALYTICS_WRITE_KEY: appConfig.SEGMENT_ANALYTICS_WRITE_KEY,
     STRIPE_PUBLIC_API_KEY: appConfig.STRIPE_PUBLIC_API_KEY,
-    ENABLE_SPA_ROUTING: appConfig.ENABLE_SPA_ROUTING,
+    ENABLE_SPA_ROUTING: appConfig.ENABLE_SPA_ROUTING
   },
   webpack: (webpackConfig) => {
     webpackConfig.module.rules.push({
       test: /\.(gql|graphql)$/,
       loader: "graphql-tag/loader",
       exclude: ["/node_modules/", "/.next/"],
-      enforce: "pre",
+      enforce: "pre"
     });
 
     webpackConfig.module.rules.push({
       test: /\.mjs$/,
-      type: "javascript/auto",
+      type: "javascript/auto"
     });
 
     // Duplicate versions of the styled-components package were being loaded, this config removes the duplication.
@@ -57,10 +62,12 @@ module.exports = withTM({
 
     webpackConfig.resolve.alias["@reactioncommerce/api-utils"] = "@reactioncommerce/api-utils/lib";
 
+    /*
     webpackConfig.resolve.alias["@reactioncommerce/api-utils/lib/importAsString.js"] = path.join(
       __dirname,
       "importAsString.js"
     );
+    */
 
     return webpackConfig;
   },
@@ -70,18 +77,18 @@ module.exports = withTM({
         {
           source: "/graphiql",
           destination: appConfig.EXTERNAL_GRAPHQL_URL,
-          permanent: true,
+          permanent: true
         },
         {
           source: "/graphql-beta",
           destination: appConfig.EXTERNAL_GRAPHQL_URL,
-          permanent: true,
+          permanent: true
         },
         {
           source: "/graphql-alpha",
           destination: appConfig.EXTERNAL_GRAPHQL_URL,
-          permanent: true,
-        },
+          permanent: true
+        }
         /*
         {
           source: "/graphql",
@@ -95,51 +102,51 @@ module.exports = withTM({
       return [
         {
           source: "/graphql",
-          destination: "/api/reaction/graphql",
+          destination: "/api/reaction/graphql"
         },
         // Sitemap
         {
           source: "/sitemap:subPage?.xml",
-          destination: "/api/sitemap",
+          destination: "/api/sitemap"
         },
         // Accounts
         {
           source: "/change-password",
-          destination: "/api/account/changePassword",
+          destination: "/api/account/changePassword"
         },
         {
           source: "/post-logout-callback",
-          destination: "/api/account/postLogoutCallback",
+          destination: "/api/account/postLogoutCallback"
         },
         {
           source: "/token",
-          destination: "/api/account/token",
+          destination: "/api/account/token"
         },
         {
           source: "/signin",
-          destination: "/api/account/signin",
+          destination: "/api/account/signin"
         },
         {
           source: "/signup",
-          destination: "/api/account/signup",
+          destination: "/api/account/signup"
         },
         {
           source: "/callback",
-          destination: "/api/account/callback",
+          destination: "/api/account/callback"
         },
         {
           source: "/logout",
-          destination: "/api/account/logout",
+          destination: "/api/account/logout"
         },
         {
           source: "/refresh",
-          destination: "/api/account/refresh",
+          destination: "/api/account/refresh"
         },
         {
           source: "/",
-          destination: "/api/detectLanguage",
-        },
+          destination: "/api/detectLanguage"
+        }
       ];
-    },
-  },
+    }
+  }
 });
