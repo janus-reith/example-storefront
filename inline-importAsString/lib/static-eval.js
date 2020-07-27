@@ -1,16 +1,6 @@
 var t = require("@babel/types");
-var moduleDetails = require("./get-module-function");
 var nodeResolve = require("resolve");
 var browserResolve = require("browser-resolve");
-
-function isRequireResolve(path) {
-  return (
-    t.isCallExpression(path.node) &&
-    t.isMemberExpression(path.node.callee) &&
-    path.node.callee.object.name === "require" &&
-    path.node.callee.property.name === "resolve"
-  );
-}
 
 function resolveSync(target, id, opts) {
   return (target === "browser" ? browserResolve : nodeResolve).sync(id, {
@@ -45,8 +35,9 @@ function evaluate(opts, path, vars, modules, needsEval) {
     });
 
     var argValues, computedNode;
-    // `require.resolve(identifier)` is a CallExpression but cannot be evaluated with existing `evaluate()`
-    if (isRequireResolve(path)) {
+
+    if (t.isCallExpression(path.node)) {
+      // Evaluate recursively if it's a function call
       // First evaluate all our arguments recursively
       argValues = path.get("arguments").map(function(arg) {
         return evaluate(opts, arg, vars, modules, true);
@@ -61,53 +52,21 @@ function evaluate(opts, path, vars, modules, needsEval) {
         paths: resolveOpts.paths
       });
 
+      computedNode = modules.fs.readFileSync.call(modules.fs, str);
+
+      replaceWith(path, computedNode);
+    } else {
+      var target = opts.target || "node";
+      var id = path.node.value;
+
+      var str = resolveSync(target, id, {
+        basedir: vars.__dirname,
+        paths: {}
+      });
+
+      // computedNode = modules.fs.readFileSync.call(modules.fs, `${vars.__dirname}/${path.node.value}`);
       computedNode = t.valueToNode(str);
       replaceWith(path, computedNode);
-    } else if (t.isCallExpression(path.node)) {
-      // Evaluate recursively if it's a function call
-      // First evaluate all our arguments recursively
-      argValues = path.get("arguments").map(function(arg) {
-        return evaluate(opts, arg, vars, modules, true);
-      });
-
-      // Now determine which static module & method name to call
-      var details = moduleDetails(path);
-      var moduleName = details[0];
-      var moduleFunc = details[1];
-
-      // Some safeguards
-      if (!(moduleName in modules)) {
-        throw new Error("Cannot evaluate " + moduleName + "->" + moduleFunc + ", no known static module.");
-      }
-      var staticModule = modules[moduleName];
-      if (!(moduleFunc in staticModule)) {
-        throw new Error('The module "' + moduleName + '" does not seem to export ' + moduleFunc);
-      }
-
-      // Call our method and replace current path
-      computedNode = staticModule[moduleFunc].apply(staticModule, argValues);
-      replaceWith(path, computedNode);
-    } else if (t.isObjectExpression(path.node)) {
-      var props = path.get("properties");
-      var resultingObj = {};
-      props.forEach(function(prop) {
-        var node = prop.node;
-        if (node.computed) {
-          throw new Error("Cannot handle computed property keys in arguments for static-fs");
-        }
-        if (!t.isIdentifier(node.key)) {
-          throw new Error('Can only handle simple { encoding: "hex" } type options in static-fs arguments');
-        }
-        var key = node.key.name;
-        var val = prop.get("value").evaluate();
-        if (!val.confident) {
-          throw new Error('Could not evaluate "' + key + '" in the object expression for static-fs');
-        }
-        resultingObj[key] = val.value;
-      });
-
-      // We evaluated a *simple* object expression like { encoding: 'hex' }
-      return resultingObj;
     }
 
     // Evaluate the new AST

@@ -34,10 +34,18 @@ module.exports = function(instance) {
       instance.onFile(file);
 
       if (isBuffer) {
+        /*
         return buffer({
           CONTENT: t.stringLiteral(result),
           ENC: t.stringLiteral(enc)
         });
+        */
+        const bufferFile = buffer({
+          CONTENT: t.stringLiteral(result),
+          ENC: t.stringLiteral(enc)
+        });
+
+        return bufferFile.toString("utf8");
       }
       return t.stringLiteral(result.toString());
     }
