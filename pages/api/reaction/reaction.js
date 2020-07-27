@@ -238,6 +238,7 @@ async function registerPlugin(plugin = {}) {
       _.merge(resolvers, plugin.graphQL.resolvers);
     }
     if (plugin.graphQL.schemas) {
+      console.log("plugin.graphQL.schemas", plugin.graphQL.schemas);
       schemas.push(...plugin.graphQL.schemas);
     }
   }
