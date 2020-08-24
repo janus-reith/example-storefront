@@ -11,6 +11,8 @@ import createApolloServer from "./createApolloServer.js";
 // import importPluginsJSONFile from "@reactioncommerce/api-core/src/importPluginsJSONFile.js";
 import coreResolvers from "@reactioncommerce/api-core/src/graphql/resolvers/index.js";
 
+import builtInAppEvents from "@reactioncommerce/api-core/src/util/appEvents.js";
+
 const coreGraphQLSchema = importAsString("@reactioncommerce/api-core/src/graphql/schema.graphql");
 
 import envConfig from "./config";
@@ -238,7 +240,7 @@ async function registerPlugin(plugin = {}) {
       _.merge(resolvers, plugin.graphQL.resolvers);
     }
     if (plugin.graphQL.schemas) {
-      console.log("plugin.graphQL.schemas", plugin.graphQL.schemas);
+      // console.log("plugin.graphQL.schemas", plugin.graphQL.schemas);
       schemas.push(...plugin.graphQL.schemas);
     }
   }
@@ -248,9 +250,9 @@ async function registerPlugin(plugin = {}) {
   }
 
   if (plugin.queries) {
-    console.log("plugin.queries", plugin.queries);
+    // console.log("plugin.queries", plugin.queries);
     _.merge(context.queries, plugin.queries);
-    console.log("context.queries", context.queries);
+    // console.log("context.queries", context.queries);
   }
 
   if (plugin.auth) {
@@ -323,6 +325,8 @@ export default async function start(req, res) {
     context = {
       rootUrl,
       getAbsoluteUrl: (path) => getAbsoluteUrl(rootUrl, path),
+      appEvents: builtInAppEvents,
+      appVersion: "3.8.0",
       auth: {},
       collections,
       /**
